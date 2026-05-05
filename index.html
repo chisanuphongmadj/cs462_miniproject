@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thai Handwriting 56-60</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --ink: #17202f;
+      --muted: #667085;
+      --line: #d8dee9;
+      --blue: #1d4ed8;
+      --blue-soft: #dbeafe;
+      --green: #15803d;
+      --green-soft: #dcfce7;
+      --red: #b91c1c;
+      --red-soft: #fee2e2;
+      --shadow: 0 14px 36px rgba(19, 32, 55, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Tahoma, "Noto Sans Thai", Arial, sans-serif;
+    }
+
+    header {
+      background: #111827;
+      color: #ffffff;
+      padding: 22px 28px;
+      border-bottom: 4px solid #38bdf8;
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: #d1d5db;
+      line-height: 1.55;
+    }
+
+    .model-pill {
+      flex: 0 0 auto;
+      min-width: 210px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+
+    .model-pill strong {
+      display: block;
+      color: #ffffff;
+      margin-top: 4px;
+      word-break: break-word;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 24px auto 44px;
+      padding: 0 18px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tab-button,
+    button,
+    .file-button,
+    select {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .tab-button {
+      padding: 0 16px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tab-button.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 430px) 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0 0 14px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .panel h2 {
+      font-size: 22px;
+    }
+
+    .panel h3 {
+      font-size: 18px;
+    }
+
+    .hint {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .draw-wrap {
+      width: min(100%, 360px);
+      margin: 0 auto;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      background: #ffffff;
+      border: 2px dashed #9aa4b2;
+      border-radius: 8px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .controls.full {
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    select {
+      width: 100%;
+      padding: 0 12px;
+    }
+
+    button,
+    .file-button {
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #ffffff;
+    }
+
+    .secondary {
+      background: #eef2f7;
+    }
+
+    .danger {
+      background: var(--red-soft);
+      border-color: #fecaca;
+      color: var(--red);
+    }
+
+    .success {
+      background: var(--green-soft);
+      border-color: #bbf7d0;
+      color: var(--green);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(86px, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfe;
+    }
+
+    .stat .digit {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat .count {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--green);
+      transition: width 0.2s ease;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+      gap: 10px;
+      max-height: 330px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .sample {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 7px;
+      min-height: 116px;
+      display: grid;
+      gap: 5px;
+      align-content: start;
+    }
+
+    .sample img {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 1px solid #eef2f7;
+      border-radius: 6px;
+      object-fit: contain;
+      background: #ffffff;
+    }
+
+    .sample-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .sample-meta button {
+      min-height: 26px;
+      padding: 0 8px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    .result {
+      display: grid;
+      gap: 12px;
+    }
+
+    .prediction {
+      min-height: 116px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+      color: var(--blue);
+      font-size: clamp(52px, 8vw, 86px);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .confidence-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .confidence-row {
+      display: grid;
+      grid-template-columns: 42px 1fr 54px;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .confidence-row .label {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #111827;
+      color: #ffffff;
+      border-color: #111827;
+      min-width: 180px;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .empty {
+      color: var(--muted);
+      line-height: 1.6;
+      padding: 14px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    @media (max-width: 860px) {
+      .header-inner,
+      .grid,
+      .admin-grid {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .model-pill {
+        min-width: 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Thai Handwriting ML: ๕๖-๖๐</h1>
+        <p class="subtitle">เว็บต้นแบบสำหรับเก็บ dataset, ทดลอง predict และจัดการไฟล์ model ของงานลายมือเลขไทย</p>
+      </div>
+      <div class="model-pill">
+        Current model
+        <strong id="currentModel">mock_model_v1</strong>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <nav class="tabs" aria-label="Main navigation">
+      <button class="tab-button active" data-view="collectView">เก็บ Dataset</button>
+      <button class="tab-button" data-view="predictView">Predict</button>
+      <button class="tab-button" data-view="adminView">Admin</button>
+    </nav>
+
+    <section id="collectView" class="view active">
+      <div class="grid">
+        <div class="panel">
+          <h2>เขียนตัวอย่างลายมือ</h2>
+          <p class="hint">เลือก label ให้ตรงกับเลขที่เขียน แล้วกดบันทึกตัวอย่าง ระบบจะเก็บไว้ใน browser นี้และ export เป็น JSON ได้</p>
+          <div class="draw-wrap">
+            <canvas id="collectCanvas" width="320" height="320" aria-label="พื้นที่เขียนเลขไทยสำหรับเก็บ dataset"></canvas>
+            <div class="controls">
+              <div>
+                <label for="collectLabel">Label</label>
+                <select id="collectLabel">
+                  <option value="56">๕๖</option>
+                  <option value="57">๕๗</option>
+                  <option value="58">๕๘</option>
+                  <option value="59">๕๙</option>
+                  <option value="60">๖๐</option>
+                </select>
+              </div>
+              <button class="secondary" id="clearCollect">ล้าง Canvas</button>
+              <button class="primary" id="saveSample">บันทึกตัวอย่าง</button>
+              <button class="success" id="exportDataset">Export Dataset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>จำนวนข้อมูลต่อ Class</h2>
+          <p class="hint">เป้าหมายแนะนำคืออย่างน้อย 30-50 รูปต่อ class ก่อนเริ่ม train model</p>
+          <div class="stats-grid" id="statsGrid"></div>
+          <h3 style="margin-top: 18px;">ตัวอย่างล่าสุด</h3>
+          <div id="gallery" class="gallery"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="predictView" class="view">
+      <div class="grid">
+        <div class="panel">
+          <h2>ทดสอบ Predict</h2>
+          <p class="hint">เขียนเลขไทยในช่วง ๕๖-๖๐ แล้วกด Predict ระบบจะส่งภาพไปที่ backend /predict เพื่อใช้โมเดลจริงทำนาย</p>
+          <div class="draw-wrap">
+            <canvas id="predictCanvas" width="320" height="320" aria-label="พื้นที่เขียนเลขไทยสำหรับทำนาย"></canvas>
+            <div class="controls">
+              <button class="primary" id="predictButton">Predict</button>
+              <button class="secondary" id="clearPredict">ล้าง Canvas</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel result">
+          <h2>ผลลัพธ์</h2>
+          <div class="prediction" id="predictionText">-</div>
+          <div class="confidence-list" id="confidenceList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="adminView" class="view">
+      <div class="admin-grid">
+        <div class="panel">
+          <h2>Model Management</h2>
+          <p class="hint">อัปโหลดไฟล์ model เพื่อจำลองการเปลี่ยน version บนหน้าเว็บ ส่วน backend จริงจะนำไฟล์นี้ไปโหลดใน server</p>
+          <label class="file-button" for="modelUpload">เลือกไฟล์ Model</label>
+          <input id="modelUpload" type="file" accept=".pkl,.joblib,.pt,.pth,.h5,.onnx">
+          <div class="status" id="modelStatus">ยังไม่ได้อัปโหลด model ใหม่</div>
+        </div>
+
+        <div class="panel">
+          <h2>Dataset Tools</h2>
+          <p class="hint">ใช้สำหรับ backup หรือเริ่มเก็บข้อมูลใหม่ในเครื่องนี้</p>
+          <div class="controls full">
+            <button class="success" id="exportDatasetAdmin">Export Dataset JSON</button>
+            <button class="danger" id="clearDataset">ลบ Dataset ใน Browser</button>
+          </div>
+          <div class="status" id="datasetStatus">Dataset จะถูกเก็บใน IndexedDB ของ browser</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const CLASSES = ["56", "57", "58", "59", "60"];
+    const THAI_LABELS = {
+      "56": "๕๖",
+      "57": "๕๗",
+      "58": "๕๘",
+      "59": "๕๙",
+      "60": "๖๐"
+    };
+    const TARGET_PER_CLASS = 50;
+    const LEGACY_STORAGE_KEY = "thai_handwriting_56_60_samples";
+    const DB_NAME = "thai_handwriting_56_60_db";
+    const DB_VERSION = 1;
+    const STORE_NAME = "samples";
+    const MODEL_KEY = "thai_handwriting_current_model";
+
+    const collectCanvas = document.getElementById("collectCanvas");
+    const predictCanvas = document.getElementById("predictCanvas");
+    const collectLabel = document.getElementById("collectLabel");
+    const statsGrid = document.getElementById("statsGrid");
+    const gallery = document.getElementById("gallery");
+    const predictionText = document.getElementById("predictionText");
+    const confidenceList = document.getElementById("confidenceList");
+    const currentModel = document.getElementById("currentModel");
+    const modelStatus = document.getElementById("modelStatus");
+    const datasetStatus = document.getElementById("datasetStatus");
+
+    let samples = [];
+    let db = null;
+
+    function setupCanvas(canvas) {
+      const context = canvas.getContext("2d");
+      let drawing = false;
+      let lastPoint = null;
+
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.strokeStyle = "#111827";
+      context.lineWidth = 18;
+
+      function getPoint(event) {
+        const rect = canvas.getBoundingClientRect();
+        const pointer = event.touches ? event.touches[0] : event;
+        return {
+          x: (pointer.clientX - rect.left) * (canvas.width / rect.width),
+          y: (pointer.clientY - rect.top) * (canvas.height / rect.height)
+        };
+      }
+
+      function start(event) {
+        event.preventDefault();
+        drawing = true;
+        lastPoint = getPoint(event);
+      }
+
+      function move(event) {
+        if (!drawing) return;
+        event.preventDefault();
+        const point = getPoint(event);
+        context.beginPath();
+        context.moveTo(lastPoint.x, lastPoint.y);
+        context.lineTo(point.x, point.y);
+        context.stroke();
+        lastPoint = point;
+      }
+
+      function end() {
+        drawing = false;
+        lastPoint = null;
+      }
+
+      canvas.addEventListener("mousedown", start);
+      canvas.addEventListener("mousemove", move);
+      window.addEventListener("mouseup", end);
+      canvas.addEventListener("touchstart", start, { passive: false });
+      canvas.addEventListener("touchmove", move, { passive: false });
+      window.addEventListener("touchend", end);
+    }
+
+    function clearCanvas(canvas) {
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function hasDrawing(canvas) {
+      const context = canvas.getContext("2d");
+      const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      for (let index = 0; index < data.length; index += 4) {
+        if (data[index] < 245 || data[index + 1] < 245 || data[index + 2] < 245) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function openDatasetDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onupgradeneeded = event => {
+          const database = event.target.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            database.createObjectStore(STORE_NAME, { keyPath: "id" });
+          }
+        };
+
+        request.onsuccess = event => resolve(event.target.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function getAllSamples() {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+          const result = request.result || [];
+          result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          resolve(result);
+        };
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function putSample(sample) {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put(sample);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function removeSample(id) {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(id);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function clearSampleStore() {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.clear();
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function migrateLegacySamples() {
+      const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (!legacyRaw) return;
+
+      let legacySamples = [];
+      try {
+        legacySamples = JSON.parse(legacyRaw) || [];
+      } catch (error) {
+        return;
+      }
+
+      const existing = await getAllSamples();
+      if (existing.length === 0 && legacySamples.length > 0) {
+        for (const sample of legacySamples) {
+          await putSample(sample);
+        }
+      }
+
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
+
+    async function refreshSamples() {
+      samples = await getAllSamples();
+      renderDataset();
+    }
+
+    async function saveSample() {
+      if (!hasDrawing(collectCanvas)) {
+        alert("กรุณาเขียนเลขก่อนบันทึก");
+        return;
+      }
+
+      const label = collectLabel.value;
+      const sample = {
+        id: Date.now().toString(36),
+        label,
+        thaiLabel: THAI_LABELS[label],
+        imageData: collectCanvas.toDataURL("image/png"),
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        await putSample(sample);
+        samples.unshift(sample);
+        clearCanvas(collectCanvas);
+        renderDataset();
+      } catch (error) {
+        console.error(error);
+        alert("บันทึกไม่สำเร็จ: พื้นที่เก็บข้อมูลของ browser อาจเต็ม ให้ Export Dataset สำรองไว้ก่อน");
+      }
+    }
+
+    function renderDataset() {
+      const counts = Object.fromEntries(CLASSES.map(label => [label, 0]));
+      samples.forEach(sample => {
+        counts[sample.label] = (counts[sample.label] || 0) + 1;
+      });
+
+      statsGrid.innerHTML = CLASSES.map(label => {
+        const count = counts[label];
+        const percent = Math.min(100, Math.round((count / TARGET_PER_CLASS) * 100));
+        return `
+          <div class="stat">
+            <div class="digit">${THAI_LABELS[label]}</div>
+            <div class="count">${count} / ${TARGET_PER_CLASS} รูป</div>
+            <div class="bar"><span style="width:${percent}%"></span></div>
+          </div>
+        `;
+      }).join("");
+
+      if (samples.length === 0) {
+        gallery.innerHTML = '<div class="empty">ยังไม่มีตัวอย่างที่บันทึก</div>';
+      } else {
+        gallery.innerHTML = samples.slice(0, 60).map(sample => `
+          <div class="sample">
+            <img src="${sample.imageData}" alt="ตัวอย่างเลข ${sample.thaiLabel}">
+            <div class="sample-meta">
+              <strong>${sample.thaiLabel}</strong>
+              <button class="danger" data-delete="${sample.id}">ลบ</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      if (datasetStatus) {
+        datasetStatus.textContent = `มีข้อมูลทั้งหมด ${samples.length} รูปใน IndexedDB ของ browser นี้`;
+      }
+    }
+
+    async function deleteSample(id) {
+      samples = samples.filter(sample => sample.id !== id);
+      await removeSample(id);
+      renderDataset();
+    }
+
+    function exportDataset() {
+      const payload = {
+        name: "thai-handwriting-56-60",
+        exportedAt: new Date().toISOString(),
+        classes: CLASSES,
+        samples
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "thai_handwriting_56_60_dataset.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function predictDigit() {
+      if (!hasDrawing(predictCanvas)) {
+        alert("กรุณาเขียนเลขก่อน Predict");
+        return;
+      }
+
+      const button = document.getElementById("predictButton");
+      button.disabled = true;
+      button.textContent = "Predicting...";
+      predictionText.textContent = "...";
+      confidenceList.innerHTML = "";
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageData: predictCanvas.toDataURL("image/png") })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || "Predict failed");
+        }
+
+        predictionText.textContent = result.thaiPrediction || THAI_LABELS[result.prediction] || result.prediction;
+        if (result.model) {
+          currentModel.textContent = `${result.model} (${result.device || "model"})`;
+        }
+
+        confidenceList.innerHTML = result.confidences.map(item => {
+          const label = item.thaiLabel || THAI_LABELS[item.label] || item.label;
+          const percent = Math.round(item.confidence * 100);
+          return `
+            <div class="confidence-row">
+              <span class="label">${label}</span>
+              <div class="bar"><span style="width:${percent}%"></span></div>
+              <span>${percent}%</span>
+            </div>
+          `;
+        }).join("");
+      } catch (error) {
+        predictionText.textContent = "-";
+        confidenceList.innerHTML = `<div class="empty">เชื่อมต่อ /predict ไม่สำเร็จ กรุณาเปิดเว็บผ่าน start_web_app.bat</div>`;
+        console.error(error);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Predict";
+      }
+    }
+
+    async function clearDataset() {
+      if (!confirm("ต้องการลบ dataset ทั้งหมดใน browser นี้ใช่ไหม")) return;
+      samples = [];
+      await clearSampleStore();
+      renderDataset();
+    }
+
+    function setupTabs() {
+      document.querySelectorAll(".tab-button").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".tab-button").forEach(item => item.classList.remove("active"));
+          document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(button.dataset.view).classList.add("active");
+        });
+      });
+    }
+
+    function setupModelUpload() {
+      const savedModel = localStorage.getItem(MODEL_KEY) || "mock_model_v1";
+      currentModel.textContent = savedModel;
+
+      document.getElementById("modelUpload").addEventListener("change", event => {
+        const file = event.target.files[0];
+        if (!file) return;
+        localStorage.setItem(MODEL_KEY, file.name);
+        currentModel.textContent = file.name;
+        modelStatus.textContent = `เลือกไฟล์ ${file.name} แล้ว ขนาด ${(file.size / 1024).toFixed(1)} KB`;
+      });
+    }
+
+    async function initApp() {
+      setupCanvas(collectCanvas);
+      setupCanvas(predictCanvas);
+      setupTabs();
+      setupModelUpload();
+
+      document.getElementById("clearCollect").addEventListener("click", () => clearCanvas(collectCanvas));
+      document.getElementById("clearPredict").addEventListener("click", () => clearCanvas(predictCanvas));
+      document.getElementById("saveSample").addEventListener("click", saveSample);
+      document.getElementById("predictButton").addEventListener("click", predictDigit);
+      document.getElementById("exportDataset").addEventListener("click", exportDataset);
+      document.getElementById("exportDatasetAdmin").addEventListener("click", exportDataset);
+      document.getElementById("clearDataset").addEventListener("click", clearDataset);
+      gallery.addEventListener("click", event => {
+        const id = event.target.dataset.delete;
+        if (id) deleteSample(id);
+      });
+
+      try {
+        db = await openDatasetDb();
+        await migrateLegacySamples();
+        await refreshSamples();
+      } catch (error) {
+        console.error(error);
+        if (datasetStatus) {
+          datasetStatus.textContent = "เปิดฐานข้อมูลใน browser ไม่สำเร็จ กรุณาใช้ Chrome/Edge เวอร์ชันล่าสุด";
+        }
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
