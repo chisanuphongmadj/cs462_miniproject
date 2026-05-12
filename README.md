@@ -1,16 +1,16 @@
 # Thai Handwriting ML System: 56-60
 
-โปรเจกต์นี้เป็น Web Application สำหรับทำนายลายมือเลขไทยในช่วง `56-60` โดยใช้โมเดล PyTorch CNN และเชื่อมต่อผ่าน FastAPI backend
+Web application for collecting Thai handwritten number samples and predicting labels in the range `56-60`.
+The current model is a PyTorch CNN with a digit-pair pipeline: it splits the handwritten number into left/right digit crops, predicts each digit, then combines valid labels (`56`, `57`, `58`, `59`, `60`).
 
 ## Features
 
-- เก็บ dataset จาก canvas บนหน้าเว็บ
-- แปลงไฟล์ dataset JSON เป็นรูปภาพแยกตาม class
-- Train โมเดลด้วย PyTorch
-- มีโปรแกรม GUI สำหรับ convert dataset และ train model
-- Predict ลายมือจากหน้าเว็บด้วยโมเดลจริง
-- มี FastAPI backend พร้อม endpoint `/predict`, `/health`, และ API docs `/docs`
-- สรุปผลหลัง train ด้วย accuracy, precision, recall, f1-score และ confusion matrix
+- User page for drawing a Thai number on canvas and calling `/predict`.
+- Dataset collection page with label selection, sample preview, and JSON export.
+- Admin page for model file selection/status display.
+- FastAPI backend with `/predict`, `/health`, and `/docs`.
+- PyTorch training pipeline with preprocessing, augmentation, metrics, confusion matrix, and saved model artifacts.
+- GUI helper for converting exported dataset JSON and launching training.
 
 ## Project Structure
 
@@ -34,33 +34,36 @@ CS462/
   models/
     thai_handwriting_56_60_torch/
       thai_handwriting_56_60.pt
+      labels.json
+      digit_labels.json
       metrics.json
       classification_report.txt
       training_summary.txt
       training_history.png
   scripts/
     extract_dataset.py
+    image_preprocess.py
     train_model_torch.py
     fastapi_app.py
     predict_server.py
     summarize_training.py
 ```
 
-## How to Open the Web Application
+## How to Run
 
-ใช้ไฟล์นี้เพื่อเปิดเว็บพร้อม FastAPI backend:
+Run:
 
-```txt
+```bat
 start_web_app.bat
 ```
 
-หลังจากเปิดแล้ว เข้าเว็บที่:
+Open:
 
 ```txt
 http://127.0.0.1:8000/
 ```
 
-หน้า FastAPI docs:
+API docs:
 
 ```txt
 http://127.0.0.1:8000/docs
@@ -72,187 +75,127 @@ Health check:
 http://127.0.0.1:8000/health
 ```
 
-หมายเหตุ: ถ้าต้องการ predict ด้วยโมเดลจริง ห้ามเปิด `index.html` ด้วย `file:///...` โดยตรง ให้เปิดผ่าน `start_web_app.bat` เท่านั้น
+Note: prediction uses the real backend model, so open the app through `start_web_app.bat`, not by opening `index.html` directly.
 
-## How to Convert Dataset JSON
+## Dataset
 
-เปิดโปรแกรม GUI:
-
-```txt
-open_training_app.bat
-```
-
-ขั้นตอน:
-
-1. ไปที่แท็บ `Convert Dataset`
-2. เลือกไฟล์ `thai_handwriting_56_60_dataset.json`
-3. เลือก output folder เช่น `dataset/thai_handwriting_56_60`
-4. กด `Convert JSON`
-5. กด `Use Output for Training`
-
-ผลลัพธ์จะเป็นรูปภาพแยกตาม class:
+Current dataset:
 
 ```txt
-dataset/thai_handwriting_56_60/
-  56/
-  57/
-  58/
-  59/
-  60/
+56: 150 images
+57: 150 images
+58: 150 images
+59: 150 images
+60: 150 images
+Total: 750 images
 ```
 
-## How to Train the Model
+The dataset is stored as PNG files separated by class folder under `dataset/thai_handwriting_56_60/`.
 
-เปิดโปรแกรม GUI:
+## Training
 
-```txt
-open_training_app.bat
+Run from the project root:
+
+```bat
+.venv\Scripts\python.exe scripts\train_model_torch.py --data dataset\thai_handwriting_56_60 --out models\thai_handwriting_56_60_torch --epochs 60 --batch-size 32 --image-size 96 --seed 42
 ```
 
-ขั้นตอน:
+The training script:
 
-1. ไปที่แท็บ `Train Model`
-2. ตรวจสอบ `Dataset folder`
-3. ตรวจสอบ `Output folder`
-4. ตั้งค่า epochs เช่น `50`
-5. กด `Start Training`
-6. หลัง train เสร็จ ดูผลในช่อง `Metrics`
-
-ผลลัพธ์โมเดลจะถูกเก็บที่:
-
-```txt
-models/thai_handwriting_56_60_torch/
-```
-
-ไฟล์สำคัญ:
-
-```txt
-thai_handwriting_56_60.pt
-metrics.json
-classification_report.txt
-training_summary.txt
-training_history.png
-```
+- splits each two-digit sample into left/right digit crops,
+- trains a digit classifier for `0, 5, 6, 7, 8, 9`,
+- combines left/right probabilities into valid labels `56-60`,
+- saves the model and reports under `models/thai_handwriting_56_60_torch/`.
 
 ## Current Model Result
 
-Dataset ที่ใช้ train มีทั้งหมด `250` รูป:
+Model type: `digit_pair`
+
+Test split:
 
 ```txt
-56: 50 images
-57: 50 images
-58: 50 images
-59: 50 images
-60: 50 images
+Train number samples: 525
+Validation number samples: 110
+Test number samples: 115
+Train digit samples: 1050
+Validation digit samples: 220
+Test digit samples: 230
 ```
 
-Split:
+Metrics:
 
 ```txt
-Train samples: 175
-Validation samples: 35
-Test samples: 40
+Number accuracy: 97.39%
+Digit accuracy: 96.52%
+Macro precision: 0.9746
+Macro recall: 0.9739
+Macro F1-score: 0.9737
+Weighted precision: 0.9746
+Weighted recall: 0.9739
+Weighted F1-score: 0.9737
 ```
 
-ผลโมเดลล่าสุด:
+Number confusion matrix:
 
 ```txt
-Accuracy: 92.50%
-Macro precision: 0.9350
-Macro recall: 0.9250
-Macro F1-score: 0.9242
-Weighted precision: 0.9350
-Weighted recall: 0.9250
-Weighted F1-score: 0.9242
+[[22  0  1  0  0]
+ [ 1 21  0  0  1]
+ [ 0  0 23  0  0]
+ [ 0  0  0 23  0]
+ [ 0  0  0  0 23]]
 ```
 
-Confusion matrix:
+Full reports are in:
 
 ```txt
-[[8 0 0 0 0]
- [0 8 0 0 0]
- [0 1 7 0 0]
- [0 1 1 6 0]
- [0 0 0 0 8]]
+models/thai_handwriting_56_60_torch/training_summary.txt
+models/thai_handwriting_56_60_torch/classification_report.txt
+models/thai_handwriting_56_60_torch/metrics.json
+models/thai_handwriting_56_60_torch/training_history.png
 ```
 
-Classification report:
-
-```txt
-              precision    recall  f1-score   support
-
-          56     1.0000    1.0000    1.0000         8
-          57     0.8000    1.0000    0.8889         8
-          58     0.8750    0.8750    0.8750         8
-          59     1.0000    0.7500    0.8571         8
-          60     1.0000    1.0000    1.0000         8
-
-    accuracy                         0.9250        40
-   macro avg     0.9350    0.9250    0.9242        40
-weighted avg     0.9350    0.9250    0.9242        40
-```
-
-## API Endpoints
+## API
 
 ### GET `/health`
 
-ตรวจสอบว่า backend โหลดโมเดลสำเร็จหรือไม่
-
-ตัวอย่าง response:
+Example:
 
 ```json
 {
   "ok": true,
   "model": "thai_handwriting_56_60.pt",
+  "modelType": "digit_pair",
   "device": "cuda",
-  "labels": ["56", "57", "58", "59", "60"]
+  "labels": ["56", "57", "58", "59", "60"],
+  "digitLabels": ["0", "5", "6", "7", "8", "9"]
 }
 ```
 
 ### POST `/predict`
 
-รับภาพจาก canvas เป็น base64 แล้วส่งผลทำนายกลับ
+Request:
 
-ตัวอย่าง response:
+```json
+{
+  "imageData": "data:image/png;base64,..."
+}
+```
+
+Response:
 
 ```json
 {
   "prediction": "60",
   "thaiPrediction": "๖๐",
-  "confidence": 0.8476,
-  "model": "thai_handwriting_56_60.pt",
-  "device": "cuda"
+  "confidence": 0.99,
+  "modelType": "digit_pair",
+  "digitConfidences": {
+    "left": [{"label": "6", "confidence": 0.99}],
+    "right": [{"label": "0", "confidence": 0.99}]
+  }
 }
-```
-
-## Installation Notes
-
-ถ้าเปิด FastAPI ไม่ได้ ให้ติดตั้ง dependency ด้วย:
-
-```txt
-install_api_dependencies.bat
-```
-
-หรือใช้คำสั่ง:
-
-```bat
-.venv\Scripts\python.exe -m pip install -r requirements-api.txt
 ```
 
 ## Submission Notes
 
-ก่อน zip ส่งงาน ไม่ควรใส่โฟลเดอร์ `.venv` เพราะมีขนาดใหญ่ ให้ส่ง source code, dataset, model, และไฟล์ requirements แทน
-
-ควรส่งไฟล์หลักเหล่านี้:
-
-```txt
-index.html
-README.md
-start_web_app.bat
-open_training_app.bat
-training_app.py
-requirements-api.txt
-scripts/
-dataset/
-models/
-```
+The repository includes source code, training code, dataset, model artifacts, and requirements. Do not include `.venv/` when submitting as a zip because it is large and machine-specific.

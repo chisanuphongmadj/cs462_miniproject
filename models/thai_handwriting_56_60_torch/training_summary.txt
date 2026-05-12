@@ -1,33 +1,54 @@
 Training Summary
 ================
-Accuracy: 0.9250 (92.50%)
-Macro precision: 0.9350
-Macro recall: 0.9250
-Macro F1-score: 0.9242
-Weighted precision: 0.9350
-Weighted recall: 0.9250
-Weighted F1-score: 0.9242
+Model type: digit_pair
+Number accuracy: 0.9739 (97.39%)
+Digit accuracy: 0.9652 (96.52%)
+Macro precision: 0.9746
+Macro recall: 0.9739
+Macro F1-score: 0.9737
+Weighted precision: 0.9746
+Weighted recall: 0.9739
+Weighted F1-score: 0.9737
 
-Train samples: 175
-Validation samples: 35
-Test samples: 40
+Train number samples: 525
+Validation number samples: 110
+Test number samples: 115
+Train digit samples: 1050
+Validation digit samples: 220
+Test digit samples: 230
+Mean valid-label confidence: 0.9785
 
-Confusion matrix
-[[8 0 0 0 0]
- [0 8 0 0 0]
- [0 1 7 0 0]
- [0 1 1 6 0]
- [0 0 0 0 8]]
+Number confusion matrix
+[[22  0  1  0  0]
+ [ 1 21  0  0  1]
+ [ 0  0 23  0  0]
+ [ 0  0  0 23  0]
+ [ 0  0  0  0 23]]
 
-Classification report
+Number classification report
               precision    recall  f1-score   support
 
-          56     1.0000    1.0000    1.0000         8
-          57     0.8000    1.0000    0.8889         8
-          58     0.8750    0.8750    0.8750         8
-          59     1.0000    0.7500    0.8571         8
-          60     1.0000    1.0000    1.0000         8
+          56     0.9565    0.9565    0.9565        23
+          57     1.0000    0.9130    0.9545        23
+          58     0.9583    1.0000    0.9787        23
+          59     1.0000    1.0000    1.0000        23
+          60     0.9583    1.0000    0.9787        23
 
-    accuracy                         0.9250        40
-   macro avg     0.9350    0.9250    0.9242        40
-weighted avg     0.9350    0.9250    0.9242        40
+    accuracy                         0.9739       115
+   macro avg     0.9746    0.9739    0.9737       115
+weighted avg     0.9746    0.9739    0.9737       115
+
+
+Digit classification report
+              precision    recall  f1-score   support
+
+           0     0.8846    1.0000    0.9388        23
+           5     0.9783    0.9783    0.9783        92
+           6     0.9778    0.9565    0.9670        46
+           7     1.0000    0.9130    0.9545        23
+           8     0.9545    0.9130    0.9333        23
+           9     0.9583    1.0000    0.9787        23
+
+    accuracy                         0.9652       230
+   macro avg     0.9589    0.9601    0.9584       230
+weighted avg     0.9666    0.9652    0.9652       230

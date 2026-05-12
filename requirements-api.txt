@@ -3,3 +3,5 @@ uvicorn[standard]>=0.27
 torch>=2.0
 numpy>=1.24
 pillow>=10.0
+scikit-learn>=1.4
+matplotlib>=3.8

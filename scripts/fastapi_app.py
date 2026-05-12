@@ -35,8 +35,10 @@ def health():
     return {
         "ok": True,
         "model": predictor.model_path.name,
+        "modelType": predictor.model_type,
         "device": str(predictor.device),
         "labels": predictor.labels,
+        "digitLabels": predictor.digit_labels,
     }
 
 

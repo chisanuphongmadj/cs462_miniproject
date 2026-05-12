@@ -16,6 +16,9 @@ __pycache__/
 *.log
 logs/
 
+models/**/preprocessed_*.png
+models/**/*_left.png
+models/**/*_right.png
+
 .DS_Store
 Thumbs.db
-

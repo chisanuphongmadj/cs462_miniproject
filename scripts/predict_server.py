@@ -12,9 +12,17 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
+try:
+    from scripts.image_preprocess import crop_and_center_image, split_digit_images
+except ModuleNotFoundError:
+    from image_preprocess import crop_and_center_image, split_digit_images
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MODEL = ROOT / "models" / "thai_handwriting_56_60_torch" / "thai_handwriting_56_60.pt"
+MIN_CONFIDENCE = 0.70
+MIN_CONFIDENCE_MARGIN = 0.25
+MIN_DIGIT_CONFIDENCE = 0.45
 THAI_LABELS = {
     "56": "๕๖",
     "57": "๕๗",
@@ -61,11 +69,18 @@ class Predictor:
         checkpoint = torch.load(self.model_path, map_location=self.device)
         self.labels = [str(label) for label in checkpoint["labels"]]
         self.image_size = int(checkpoint.get("image_size", 96))
-        self.model = SmallCnn(len(self.labels)).to(self.device)
+        self.model_type = checkpoint.get("model_type", "whole_label")
+        self.digit_labels = [str(label) for label in checkpoint.get("digit_labels", [])]
+        self.digit_to_index = {label: index for index, label in enumerate(self.digit_labels)}
+        class_count = len(self.digit_labels) if self.model_type == "digit_pair" else len(self.labels)
+        self.model = SmallCnn(class_count).to(self.device)
         self.model.load_state_dict(checkpoint["model_state_dict"])
         self.model.eval()
 
     def predict(self, image_data):
+        if self.model_type == "digit_pair":
+            return self._predict_digit_pair(image_data)
+
         tensor = self._preprocess(image_data).to(self.device)
         with torch.no_grad():
             logits = self.model(tensor)
@@ -84,22 +99,110 @@ class Predictor:
             reverse=True,
         )
         winner = ranked[0]
+        runner_up = ranked[1] if len(ranked) > 1 else None
+        margin = winner["confidence"] - runner_up["confidence"] if runner_up else winner["confidence"]
+        is_uncertain = winner["confidence"] < MIN_CONFIDENCE or margin < MIN_CONFIDENCE_MARGIN
         return {
             "prediction": winner["label"],
             "thaiPrediction": winner["thaiLabel"],
             "confidence": winner["confidence"],
+            "confidenceMargin": margin,
+            "isUncertain": is_uncertain,
             "confidences": ranked,
             "model": self.model_path.name,
+            "modelType": self.model_type,
             "device": str(self.device),
         }
 
+    def _predict_digit_pair(self, image_data):
+        left_tensor, right_tensor = self._preprocess_digit_pair(image_data)
+        batch = torch.cat([left_tensor, right_tensor], dim=0).to(self.device)
+        with torch.no_grad():
+            digit_probabilities = torch.softmax(self.model(batch), dim=1).cpu().numpy()
+
+        left_probs = digit_probabilities[0]
+        right_probs = digit_probabilities[1]
+        label_probs = self._valid_label_probabilities(left_probs, right_probs)
+        ranked = sorted(
+            [
+                {
+                    "label": label,
+                    "thaiLabel": THAI_LABELS.get(label, label),
+                    "confidence": float(label_probs[index]),
+                }
+                for index, label in enumerate(self.labels)
+            ],
+            key=lambda item: item["confidence"],
+            reverse=True,
+        )
+        winner = ranked[0]
+        runner_up = ranked[1] if len(ranked) > 1 else None
+        margin = winner["confidence"] - runner_up["confidence"] if runner_up else winner["confidence"]
+        selected_left = left_probs[self.digit_to_index[winner["label"][0]]]
+        selected_right = right_probs[self.digit_to_index[winner["label"][1]]]
+        digit_confidence = float(min(selected_left, selected_right))
+        is_uncertain = (
+            winner["confidence"] < MIN_CONFIDENCE
+            or margin < MIN_CONFIDENCE_MARGIN
+            or digit_confidence < MIN_DIGIT_CONFIDENCE
+        )
+        return {
+            "prediction": winner["label"],
+            "thaiPrediction": winner["thaiLabel"],
+            "confidence": winner["confidence"],
+            "confidenceMargin": margin,
+            "digitConfidence": digit_confidence,
+            "isUncertain": is_uncertain,
+            "confidences": ranked,
+            "digitConfidences": {
+                "left": self._rank_digit_probabilities(left_probs),
+                "right": self._rank_digit_probabilities(right_probs),
+            },
+            "model": self.model_path.name,
+            "modelType": self.model_type,
+            "device": str(self.device),
+        }
+
+    def _valid_label_probabilities(self, left_probs, right_probs):
+        scores = []
+        for label in self.labels:
+            left_index = self.digit_to_index[label[0]]
+            right_index = self.digit_to_index[label[1]]
+            scores.append(float(left_probs[left_index] * right_probs[right_index]))
+
+        scores = np.asarray(scores, dtype=np.float32)
+        total = float(scores.sum())
+        if total <= 0:
+            return np.full(len(self.labels), 1.0 / len(self.labels), dtype=np.float32)
+        return scores / total
+
+    def _rank_digit_probabilities(self, probabilities):
+        return sorted(
+            [
+                {"label": label, "confidence": float(probabilities[index])}
+                for index, label in enumerate(self.digit_labels)
+            ],
+            key=lambda item: item["confidence"],
+            reverse=True,
+        )
+
     def _preprocess(self, image_data):
         image = Image.open(BytesIO(image_data)).convert("L")
-        image = image.resize((self.image_size, self.image_size), Image.Resampling.LANCZOS)
+        image = crop_and_center_image(image, self.image_size)
         array = np.asarray(image, dtype=np.float32)
         array = (255.0 - array) / 255.0
         tensor = torch.from_numpy(array).unsqueeze(0).unsqueeze(0)
         return tensor
+
+    def _preprocess_digit_pair(self, image_data):
+        image = Image.open(BytesIO(image_data)).convert("L")
+        left_digit, right_digit = split_digit_images(image, self.image_size)
+        return self._image_to_tensor(left_digit), self._image_to_tensor(right_digit)
+
+    def _image_to_tensor(self, image):
+        array = np.asarray(image, dtype=np.float32)
+        array = (255.0 - array) / 255.0
+        return torch.from_numpy(array).unsqueeze(0).unsqueeze(0)
 
 
 def decode_data_url(value):
@@ -117,7 +220,16 @@ def make_handler(predictor):
 
         def do_GET(self):
             if self.path == "/health":
-                self._send_json({"ok": True, "model": predictor.model_path.name, "device": str(predictor.device)})
+                self._send_json(
+                    {
+                        "ok": True,
+                        "model": predictor.model_path.name,
+                        "modelType": predictor.model_type,
+                        "device": str(predictor.device),
+                        "labels": predictor.labels,
+                        "digitLabels": predictor.digit_labels,
+                    }
+                )
                 return
 
             path = self.path.split("?", 1)[0]
